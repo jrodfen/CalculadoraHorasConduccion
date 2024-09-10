@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Horas de Conducción</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 0px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            font-size: 20px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .time-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .time-row input[type="time"] {
+            width: 80%;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .manual-button {
+            width: 200px;
+            margin: 20px auto;
+            background-color: #2196F3;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .manual-button:hover {
+            background-color: #1E88E5;
+        }
+
+        .clear-button {
+            width: 200px;
+            margin: 20px auto;
+            background-color: #f44336;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .clear-button:hover {
+            background-color: #e53935;
+        }
+
+        .norms-button {
+            width: 200px;
+            margin: 20px auto;
+            background-color: #FF9800;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .norms-button:hover {
+            background-color: #FB8C00;
+        }
+
+        .result, .warning {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .result {
+            color: #333;
+        }
+
+        .warning {
+            color: red;
+        }
+
+        .train-time {
+            font-style: italic;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .author {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        h2 {
+            margin-top: 30px;
+            font-size: 16px;
+            color: #4CAF50;
+        }
+
+        /* Estilos para los modales */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculadora de Horas de Conducción</h1>
+
+        <div class="button-container">
+            <button class="manual-button" onclick="openModal('manualModal')">Manual Básico</button>
+            <button class="clear-button" onclick="clearInputs()">Limpiar</button>
+            <button class="norms-button" onclick="openModal('normsModal')">Normas Básicas de Conducción</button>
+        </div>
+
+        <h2>Cálculo de la Jornada Diaria</h2>
+        <div class="time-row">
+            <div>
+                <label for="dayStart">Inicio de jornada:</label>
+                <input type="time" id="dayStart">
+            </div>
+            <div>
+                <label for="dayEnd">Fin de jornada:</label>
+                <input type="time" id="dayEnd">
+            </div>
+        </div>
+
+        <label for="residence">¿El servicio empieza y termina en la residencia?</label>
+        <select id="residence">
+            <option value="yes">Sí</option>
+            <option value="no">No</option>
+        </select>
+
+        <label for="restBefore4Hours">¿Realizó el descanso antes de las 4 horas continuadas?</label>
+        <input type="checkbox" id="restBefore4Hours">
+
+        <button onclick="calculateDay()">Calcular Jornada Diaria</button>
+
+        <div id="dailyResult" class="result"></div>
+
+        <h2>Trenes Realizados</h2>
+        <label for="trainCount">Cantidad de trenes realizados:</label>
+        <input type="number" id="trainCount" min="1" value="1" onchange="updateTrainInputs()">
+
+        <div id="trainInputs"></div>
+
+        <label for="highSpeed">¿El tren circula a más de 160 km/h?</label>
+        <select id="highSpeed" onchange="checkHighSpeedOrNight()">
+            <option value="no">No</option>
+            <option value="yes">Sí</option>
+        </select>
+
+        <label for="nightShift">¿Es turno nocturno (22:00 a 06:00)?</label>
+        <select id="nightShift" onchange="checkHighSpeedOrNight()">
+            <option value="no">No</option>
+            <option value="yes">Sí</option>
+        </select>
+
+        <div id="warning" class="warning"></div>
+
+        <button onclick="calculateTrains()">Calcular Trenes</button>
+
+        <div id="trainResult" class="result"></div>
+    </div>
+
+    <div class="author">
+        Autor: @José Enrique Rodríguez Fenoy - 
+	       Técnico Centro Gestión SP Andalucía
+    </div>
+
+    <!-- Modales -->
+    <div id="manualModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('manualModal')">&times;</span>
+            <h2>Manual Básico</h2>
+            <p>Aquí encontrarás una descripción de las funcionalidades de la calculadora:</p>
+            <ul>
+                <li>Calcula la jornada diaria, introduciendo horas de inicio y fin.</li>
+                <li>Calcula los tiempos de varios trenes realizados, introduciendo el inicio y fin de cada tren.</li>
+                <li>Incluye opciones para determinar si se ha realizado el descanso reglamentario antes de las 4 horas.</li>
+                <li>Considera si el tren circula a más de 160 km/h o si el turno es nocturno, afectando el límite de conducción continua.</li>
+                <li>Incluye validaciones que muestran mensajes de advertencia si se introducen datos incorrectos.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="normsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('normsModal')">&times;</span>
+            <h2>Normas Básicas de Conducción</h2>
+            <p>Las siguientes normas han sido consideradas en esta calculadora:</p>
+            <ul>
+                <li>La jornada diaria estándar es de 7 horas y 13 minutos.</li>
+                <li>Si se realiza el descanso reglamentario antes de las 4 horas, la jornada puede ampliarse a 9 horas y 30 minutos.</li>
+                <li>La conducción continua está limitada a 5 horas para trenes de alta velocidad (más de 160 km/h) o durante turnos nocturnos (22:00 a 06:00).</li>
+                <li>Si no se cumple con las normas de descanso, la calculadora muestra advertencias.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let trainCountPrev = 1; // Cantidad de trenes previa
+
+        // Función para calcular la diferencia de tiempo, teniendo en cuenta el paso al día siguiente si es necesario
+        function calculateTimeDifference(start, end) {
+            const [startHours, startMinutes] = start.split(':').map(Number);
+            const [endHours, endMinutes] = end.split(':').map(Number);
+
+            let startDate = new Date(0, 0, 0, startHours, startMinutes);
+            let endDate = new Date(0, 0, 0, endHours, endMinutes);
+
+            // Si la hora de fin es menor que la de inicio, significa que pasó al día siguiente
+            if (endDate <= startDate) {
+                endDate.setDate(endDate.getDate() + 1); // Agregar un día
+            }
+
+            const diffMilliseconds = endDate - startDate;
+            const diffMinutes = Math.floor((diffMilliseconds / 1000) / 60);
+            const hours = Math.floor(diffMinutes / 60);
+            const minutes = diffMinutes % 60;
+
+            return { hours, minutes };
+        }
+
+        // Función para mostrar horas y minutos en un formato legible
+        function formatTime(hours, minutes) {
+            return `${hours} horas y ${minutes} minutos`;
+        }
+
+        // Función para calcular la jornada diaria de forma independiente
+        function calculateDay() {
+            const dayStart = document.getElementById("dayStart").value;
+            const dayEnd = document.getElementById("dayEnd").value;
+            const restBefore4Hours = document.getElementById("restBefore4Hours").checked;
+
+            if (!dayStart || !dayEnd) {
+                document.getElementById("dailyResult").innerHTML = "Por favor, introduce tanto la hora de inicio como la de fin de la jornada.";
+                return;
+            }
+
+            const { hours: totalDayHours, minutes: totalDayMinutes } = calculateTimeDifference(dayStart, dayEnd);
+
+            let maxDailyHours = 7;
+            let maxDailyMinutes = 13;
+
+            if (restBefore4Hours) {
+                maxDailyHours = 9;
+                maxDailyMinutes = 30; // Ampliación si hay descanso
+            }
+
+            let result = `La jornada diaria es de ${formatTime(totalDayHours, totalDayMinutes)}.<br>`;
+            result += `La jornada diaria máxima permitida es de ${maxDailyHours} horas y ${maxDailyMinutes} minutos.<br>`;
+
+            // Validar si se ha excedido la jornada máxima
+            if (totalDayHours > maxDailyHours || (totalDayHours === maxDailyHours && totalDayMinutes > maxDailyMinutes)) {
+                result += `<span class="warning">Error: Se ha excedido la jornada máxima permitida de ${maxDailyHours} horas y ${maxDailyMinutes} minutos.</span>`;
+            }
+
+            document.getElementById("dailyResult").innerHTML = result;
+        }
+
+        // Función para actualizar los inputs de trenes
+        function updateTrainInputs() {
+            const trainCountNew = parseInt(document.getElementById("trainCount").value);
+            const trainInputsDiv = document.getElementById("trainInputs");
+
+            if (trainCountNew > trainCountPrev) {
+                for (let i = trainCountPrev + 1; i <= trainCountNew; i++) {
+                    const trainInput = createTrainInput(i);
+                    trainInputsDiv.appendChild(trainInput);
+                }
+            } else if (trainCountNew < trainCountPrev) {
+                for (let i = trainCountPrev; i > trainCountNew; i--) {
+                    const trainInput = document.getElementById(`train${i}`);
+                    trainInputsDiv.removeChild(trainInput);
+                }
+            }
+
+            trainCountPrev = trainCountNew; // Actualizar la cantidad previa
+        }
+
+        // Función para crear el HTML de un tren
+        function createTrainInput(trainNumber) {
+            const trainDiv = document.createElement('div');
+            trainDiv.id = `train${trainNumber}`;
+            trainDiv.className = 'time-row';
+            trainDiv.innerHTML = `
+                <h3>Tren ${trainNumber}</h3>
+                <input type="time" id="train${trainNumber}Start" placeholder="Hora de inicio" oninput="calculateSingleTrain(${trainNumber})">
+                <input type="time" id="train${trainNumber}End" placeholder="Hora de fin" oninput="calculateSingleTrain(${trainNumber})">
+                <div id="train${trainNumber}Time" class="train-time"></div>
+            `;
+            return trainDiv;
+        }
+
+        // Función para calcular el tiempo de un solo tren
+        function calculateSingleTrain(trainNumber) {
+            const startTime = document.getElementById(`train${trainNumber}Start`).value;
+            const endTime = document.getElementById(`train${trainNumber}End`).value;
+
+            if (startTime && endTime) {
+                if (startTime > endTime) {
+                    document.getElementById(`train${trainNumber}Time`).innerHTML = `Error: La hora de fin no puede ser menor que la hora de inicio.`;
+                } else {
+                    const { hours, minutes } = calculateTimeDifference(startTime, endTime);
+                    document.getElementById(`train${trainNumber}Time`).innerHTML = `Tiempo: ${formatTime(hours, minutes)}.`;
+                }
+            }
+        }
+
+        // Función para calcular la duración total de los trenes
+        function calculateTrains() {
+            const trainCount = parseInt(document.getElementById("trainCount").value);
+            let totalDrivingHours = 0;
+            let totalDrivingMinutes = 0;
+            let previousEndTime = null;
+            let result = "";
+
+            const restBefore4Hours = document.getElementById("restBefore4Hours").checked;
+
+            for (let i = 1; i <= trainCount; i++) {
+                const startTime = document.getElementById(`train${i}Start`).value;
+                const endTime = document.getElementById(`train${i}End`).value;
+
+                if (!startTime || !endTime) {
+                    document.getElementById("trainResult").innerHTML = `Por favor, introduce la hora de inicio y fin del tren ${i}.`;
+                    return;
+                }
+
+                if (startTime > endTime) {
+                    document.getElementById("trainResult").innerHTML = `Error: La hora de fin del tren ${i} no puede ser inferior a la de inicio.`;
+                    return;
+                }
+
+                if (previousEndTime && startTime < previousEndTime) {
+                    document.getElementById("trainResult").innerHTML = `Error: La hora de inicio del tren ${i} no puede ser menor que la hora de fin del tren anterior.`;
+                    return;
+                }
+
+                const { hours, minutes } = calculateTimeDifference(startTime, endTime);
+                totalDrivingHours += hours;
+                totalDrivingMinutes += minutes;
+                previousEndTime = endTime;
+            }
+
+            // Ajuste si los minutos exceden los 60
+            totalDrivingHours += Math.floor(totalDrivingMinutes / 60);
+            totalDrivingMinutes = totalDrivingMinutes % 60;
+
+            const highSpeed = document.getElementById("highSpeed").value;
+            const nightShift = document.getElementById("nightShift").value;
+
+            let maxDrivingHours = 5;
+            let maxDrivingMinutes = 30; // 5 horas y 30 minutos de conducción continuada
+            if (highSpeed === "yes" || nightShift === "yes") {
+                maxDrivingHours = 5;
+                maxDrivingMinutes = 0; // Para trenes a más de 160 km/h o nocturnos
+            }
+
+            // Si se ha marcado el descanso, NO se suman los 45 minutos al tiempo de conducción, pero se usa para ampliar la jornada a 9h 30m
+            if (restBefore4Hours) {
+                maxDrivingHours = 9;
+                maxDrivingMinutes = 30;
+            }
+
+            // Validar si se ha excedido el tiempo máximo de conducción
+            if (totalDrivingHours > maxDrivingHours || (totalDrivingHours === maxDrivingHours && totalDrivingMinutes > maxDrivingMinutes)) {
+                result += `Has excedido el límite de ${maxDrivingHours} horas y ${maxDrivingMinutes} minutos de conducción.<br>`;
+            } else {
+                result += `El tiempo total de conducción es de ${formatTime(totalDrivingHours, totalDrivingMinutes)}.<br>`;
+                result += `Estás dentro del límite de conducción permitido.<br>`;
+            }
+
+            document.getElementById("trainResult").innerHTML = result;
+        }
+
+        // Función para verificar si se ha marcado tren de alta velocidad o turno nocturno
+        function checkHighSpeedOrNight() {
+            const highSpeed = document.getElementById("highSpeed").value;
+            const nightShift = document.getElementById("nightShift").value;
+
+            const warning = document.getElementById("warning");
+            if (highSpeed === "yes" || nightShift === "yes") {
+                warning.innerHTML = "Advertencia: La conducción continuada está limitada a 5 horas para trenes de alta velocidad o en turno nocturno.";
+            } else {
+                warning.innerHTML = "";
+            }
+        }
+
+        // Función para limpiar todos los inputs
+        function clearInputs() {
+            document.getElementById("dayStart").value = '';
+            document.getElementById("dayEnd").value = '';
+            document.getElementById("residence").value = 'yes';
+            document.getElementById("restBefore4Hours").checked = false;
+            document.getElementById("trainCount").value = '1';
+            document.getElementById("highSpeed").value = 'no';
+            document.getElementById("nightShift").value = 'no';
+            trainCountPrev = 1;
+            document.getElementById("trainInputs").innerHTML = ''; // Eliminar todos los trenes
+            createInitialTrain(); // Regenerar el primer tren por defecto
+            document.getElementById("trainResult").innerHTML = '';
+            document.getElementById("dailyResult").innerHTML = '';
+            document.getElementById("warning").innerHTML = '';
+        }
+
+        // Generar una entrada de trenes por defecto al cargar la página
+        window.onload = function() {
+            createInitialTrain();
+        };
+
+        // Función para generar el Tren 1 por defecto al cargar la página
+        function createInitialTrain() {
+            const trainInputsDiv = document.getElementById("trainInputs");
+            const trainInput = createTrainInput(1);
+            trainInputsDiv.appendChild(trainInput);
+        }
+
+        // Funciones para abrir y cerrar los modales
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+    </script>
+</body>
+</html>
